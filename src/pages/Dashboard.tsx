@@ -17,30 +17,38 @@ import { useAuth } from "../lib/AuthContext";
 
 export function Dashboard() {
   const { openAddModal } = useOutletContext<any>();
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const [data, setData] = useState({
-
     accounts: [] as any[],
     transactions: [] as any[]
   });
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
+      if (!user) {
+        setData({ accounts: [], transactions: [] });
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setErrorMsg(null);
       try {
         const [accs, txs] = await Promise.all([
           getAccounts(),
           getTransactions()
         ]);
         setData({ accounts: accs, transactions: txs });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load data", err);
+        setErrorMsg("Gagal memuat data dari database. Pastikan Firestore rules Anda sudah benar. Error: " + err.message);
       } finally {
         setLoading(false);
       }
     }
     loadData();
-  }, []);
+  }, [user]);
 
   const totalBalance = data.accounts.reduce((sum, acc) => sum + acc.balance, 0);
   
@@ -98,9 +106,15 @@ export function Dashboard() {
       <div className="mb-10">
         <h2 className="font-headline-lg text-headline-lg mb-2">Ringkasan Keuangan</h2>
         <p className="text-on-surface-variant font-body-lg text-body-lg">
-          Pantau arus kas dan tabunganmu secara real-time dari Google Sheets.
+          Pantau arus kas dan tabunganmu secara real-time.
         </p>
       </div>
+
+      {errorMsg && (
+        <div className="bg-error-container text-on-error-container p-4 mb-8 border-4 border-error shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <p className="font-label-bold flex items-center gap-2"><AlertTriangle size={20} /> {errorMsg}</p>
+        </div>
+      )}
 
       {/* Bento Grid Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">

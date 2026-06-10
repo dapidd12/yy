@@ -12,23 +12,32 @@ import { getAccounts, addAccount, deleteAccount } from "../lib/sheets";
 import { useAuth } from "../lib/AuthContext";
 
 export function Accounts() {
-  const { requireAuth } = useAuth();
+  const { user, requireAuth } = useAuth();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
+      if (!user) {
+        setAccounts([]);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setErrorMsg(null);
       try {
         const accs = await getAccounts();
         setAccounts(accs);
-      } catch(e) {
+      } catch(e: any) {
         console.error(e);
+        setErrorMsg("Gagal memuat akun. Error: " + e.message);
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, []);
+  }, [user]);
 
   const totalAssets = accounts.reduce((sum, a) => sum + a.balance, 0);
   const totalCash = accounts.filter(a => a.type === 'cash').reduce((sum, a) => sum + a.balance, 0);
@@ -93,6 +102,13 @@ export function Accounts() {
       </div>
 
       <div className="p-gutter max-w-container-max mx-auto px-4 mt-8">
+        
+        {errorMsg && (
+          <div className="bg-error-container text-on-error-container p-4 mb-8 border-4 border-error shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <p className="font-label-bold">{errorMsg}</p>
+          </div>
+        )}
+
         {/* Asset Overview Cards */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Total Seluruh Aset */}

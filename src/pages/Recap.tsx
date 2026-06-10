@@ -14,25 +14,34 @@ import { getTransactions } from "../lib/sheets";
 import { useAuth } from "../lib/AuthContext";
 
 export function Recap() {
-  const { requireAuth } = useAuth();
+  const { user, requireAuth } = useAuth();
   const [data, setData] = useState({
     transactions: [] as any[]
   });
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
+      if (!user) {
+        setData({ transactions: [] });
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setErrorMsg(null);
       try {
         const txs = await getTransactions();
         setData({ transactions: txs });
-      } catch(e) {
+      } catch(e: any) {
         console.error(e);
+        setErrorMsg("Gagal memuat rekap. Error: " + e.message);
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (
@@ -81,6 +90,11 @@ export function Recap() {
       </div>
 
       {/* Quick Stats Bento */}
+      {errorMsg && (
+        <div className="bg-error-container text-on-error-container p-4 mb-4 border-4 border-error shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <p className="font-label-bold">{errorMsg}</p>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <div className="bg-surface-container-low border-4 border-on-surface p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
           <div className="relative z-10">
