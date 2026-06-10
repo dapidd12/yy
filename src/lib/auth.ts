@@ -1,11 +1,26 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+import { getAnalytics } from "firebase/analytics";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAPMa35mCZBIAPjITa8h12kbllxwAgIDPU",
+  authDomain: "money-88d37.firebaseapp.com",
+  projectId: "money-88d37",
+  storageBucket: "money-88d37.firebasestorage.app",
+  messagingSenderId: "222269525597",
+  appId: "1:222269525597:web:bf92ece249dcce48acc7b4",
+  measurementId: "G-FHXP58VLPQ"
+};
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const db = getFirestore(app);
+
+// Initialize analytics only on client
+if (typeof window !== "undefined") {
+  getAnalytics(app);
+}
 
 const provider = new GoogleAuthProvider();
 provider.addScope('https://www.googleapis.com/auth/spreadsheets');

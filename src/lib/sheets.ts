@@ -5,19 +5,6 @@ const STORAGE_KEY = 'moneymind_spreadsheet_id';
 const now = Date.now();
 const day = 86400000;
 
-const DUMMY_ACCOUNTS = [
-  { id: "1", name: "Bank BCA", type: "bank", balance: 12450000 },
-  { id: "2", name: "GoPay", type: "ewallet", balance: 4200000 },
-  { id: "3", name: "Dompet Utama", type: "cash", balance: 2500000 }
-];
-
-const DUMMY_TRANSACTIONS = [
-  { id: "1", date: new Date(now).toISOString(), accountId: "1", type: "income", category: "Pekerjaan", amount: 12000000, description: "Gaji Bulanan" },
-  { id: "2", date: new Date(now - day).toISOString(), accountId: "3", type: "expense", category: "Makan & Minum", amount: 45000, description: "Makan Siang" },
-  { id: "3", date: new Date(now - day * 2).toISOString(), accountId: "1", type: "expense", category: "Kebutuhan", amount: 1200000, description: "Belanja Bulanan" },
-  { id: "4", date: new Date(now - day * 3).toISOString(), accountId: "2", type: "expense", category: "Utilitas", amount: 450000, description: "Tagihan Listrik" },
-];
-
 export async function getSpreadsheetId(): Promise<string> {
   let id = localStorage.getItem(STORAGE_KEY);
   if (!id) {
@@ -125,7 +112,7 @@ export async function initSpreadsheet(spreadsheetId: string) {
 
 export async function getTransactions() {
   const token = await getAccessToken();
-  if (!token) return DUMMY_TRANSACTIONS;
+  if (!token) return [];
   const spreadsheetId = await getSpreadsheetId();
   const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Transactions!A2:G`, {
     headers: { Authorization: `Bearer ${token}` }
@@ -186,7 +173,7 @@ export async function deleteTransactions() {
 
 export async function getAccounts() {
   const token = await getAccessToken();
-  if (!token) return DUMMY_ACCOUNTS;
+  if (!token) return [];
   const spreadsheetId = await getSpreadsheetId();
   const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Accounts!A2:D`, {
     headers: { Authorization: `Bearer ${token}` }
