@@ -23,7 +23,6 @@ if (typeof window !== "undefined") {
 }
 
 const provider = new GoogleAuthProvider();
-provider.addScope('https://www.googleapis.com/auth/spreadsheets');
 
 let isSigningIn = false;
 let cachedAccessToken: string | null = null;

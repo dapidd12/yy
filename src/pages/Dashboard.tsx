@@ -9,12 +9,15 @@ import {
   Briefcase, 
   ShoppingCart, 
   Zap,
-  Plus
+  Plus,
+  AlertTriangle
 } from "lucide-react";
 import { getTransactions, getAccounts } from "../lib/sheets";
+import { useAuth } from "../lib/AuthContext";
 
 export function Dashboard() {
   const { openAddModal } = useOutletContext<any>();
+  const { userProfile } = useAuth();
   const [data, setData] = useState({
 
     accounts: [] as any[],
@@ -74,6 +77,10 @@ export function Dashboard() {
     const acc = data.accounts.find(a => a.id === id);
     return acc ? acc.name : 'Unknown';
   };
+
+  const monthlyTarget = userProfile?.settings?.monthlyTarget || 0;
+  const expensePercentage = monthlyTarget > 0 ? Math.min(Math.round((thisMonthExpense / monthlyTarget) * 100), 100) : 0;
+  const isOverBudget = monthlyTarget > 0 && thisMonthExpense > monthlyTarget;
 
   if (loading) {
     return (
@@ -141,23 +148,38 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Progress Tabungan */}
+        {/* Target Pengeluaran */}
         <div className="bg-secondary-container border-4 border-on-surface p-6 flex flex-col justify-between h-48 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
-          <div>
-            <p className="font-label-bold text-label-bold uppercase text-on-secondary-container">
-              Target Tabungan
-            </p>
-            <div className="mt-4 w-full h-4 border-2 border-on-surface bg-white relative">
-              <div
-                className="h-full bg-secondary border-r-2 border-on-surface w-[65%]"
-              ></div>
-            </div>
-            <p className="font-label-bold text-label-bold mt-2">65% Tercapai</p>
-          </div>
-          <div className="flex justify-between items-center text-on-secondary-container">
-            <span className="font-label-bold text-label-bold">Rp 6.5M / Rp 10M</span>
-            <PiggyBank size={24} />
-          </div>
+          {monthlyTarget > 0 ? (
+            <>
+              <div>
+                <p className="font-label-bold text-label-bold uppercase text-on-secondary-container">
+                  Sisa Budget Bulan Ini
+                </p>
+                <div className="mt-4 w-full h-4 border-2 border-on-surface bg-white relative">
+                  <div
+                    className={`h-full border-r-2 border-on-surface ${isOverBudget ? 'bg-error' : 'bg-secondary'}`}
+                    style={{ width: `${expensePercentage}%` }}
+                  ></div>
+                </div>
+                {isOverBudget ? (
+                   <p className="font-label-bold text-label-bold mt-2 text-error flex items-center gap-1"><AlertTriangle size={16}/> Overbudget!</p>
+                ) : (
+                   <p className="font-label-bold text-label-bold mt-2">{expensePercentage}% Terpakai</p>
+                )}
+              </div>
+              <div className="flex justify-between items-center text-on-secondary-container">
+                <span className="font-label-bold text-label-bold">{formatIDR(thisMonthExpense)} / {formatIDR(monthlyTarget)}</span>
+                <PiggyBank size={24} />
+              </div>
+            </>
+          ) : (
+             <div className="flex flex-col items-center justify-center h-full text-center">
+               <PiggyBank size={32} className="mb-2 text-on-surface-variant" />
+               <p className="font-label-bold text-sm uppercase text-on-surface-variant mb-2">Belum Ada Target</p>
+               <a href="/settings" className="text-xs font-label-bold underline">Atur di Pengaturan</a>
+             </div>
+          )}
         </div>
       </div>
 

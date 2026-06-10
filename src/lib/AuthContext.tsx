@@ -10,6 +10,7 @@ type AuthContextType = {
   login: () => Promise<void>;
   logout: () => Promise<void>;
   requireAuth: (action: () => void) => void;
+  refreshUserProfile: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({} as any);
@@ -99,6 +100,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await firebaseLogout();
   };
 
+  const refreshUserProfile = async () => {
+    if (user) {
+      const profile = await getUserProfile(user.uid);
+      if (profile) {
+        setUserProfile(profile);
+      }
+    }
+  };
+
   const requireAuth = (action: () => void) => {
     if (user) {
       action();
@@ -117,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, login, logout, requireAuth }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, login, logout, requireAuth, refreshUserProfile }}>
       {children}
       {showLoginModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">

@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './auth';
 
 export async function getUserProfile(uid: string) {
@@ -16,5 +16,12 @@ export async function createUserProfile(uid: string, email: string, username: st
     email,
     username,
     createdAt: serverTimestamp()
+  });
+}
+
+export async function updateUserSettings(uid: string, settings: any) {
+  const docRef = doc(db, 'users', uid);
+  await updateDoc(docRef, {
+    settings
   });
 }

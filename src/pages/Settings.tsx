@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Globe, 
   Database, 
@@ -9,15 +9,50 @@ import {
   BadgeCheck, 
   Bot, 
   AlertTriangle,
-  AlertOctagon
+  AlertOctagon,
+  Target
 } from "lucide-react";
 import { deleteTransactions, resetAccounts } from "../lib/sheets";
+import { updateUserSettings } from "../lib/user";
 import { useAuth } from "../lib/AuthContext";
 
 export function Settings() {
-  const { requireAuth } = useAuth();
+  const { user, userProfile, requireAuth, refreshUserProfile } = useAuth();
   const [modalType, setModalType] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [monthlyTarget, setMonthlyTarget] = useState("");
+  const [targetLoading, setTargetLoading] = useState(false);
+
+  useEffect(() => {
+    if (userProfile?.settings?.monthlyTarget) {
+      setMonthlyTarget(userProfile.settings.monthlyTarget.toString());
+    }
+  }, [userProfile]);
+
+  const handleUpdateTarget = async () => {
+    requireAuth(async () => {
+      if (!user) return;
+      setTargetLoading(true);
+      try {
+        const targetValue = parseFloat(monthlyTarget);
+        if (isNaN(targetValue)) {
+          alert("Masukkan nominal yang valid");
+          return;
+        }
+        await updateUserSettings(user.uid, {
+          ...(userProfile?.settings || {}),
+          monthlyTarget: targetValue
+        });
+        await refreshUserProfile();
+        alert("Target pengeluaran berhasil diperbarui");
+      } catch (err) {
+        console.error(err);
+        alert("Gagal memperbarui target");
+      } finally {
+        setTargetLoading(false);
+      }
+    });
+  };
 
   const handleExecuteDanger = async () => {
     setLoading(true);
@@ -105,6 +140,38 @@ export function Settings() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+        {/* Section: Target */}
+        <section className="md:col-span-2 flex flex-col gap-4 border-4 border-on-surface bg-primary-container p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="bg-white p-2 border-2 border-on-surface">
+              <Target size={24} />
+            </span>
+            <h3 className="font-headline-md text-headline-md uppercase">Target Bulanan</h3>
+          </div>
+          <p className="font-body-md text-body-md mb-2">
+            Atur limit pengeluaran bulanan. Moneymind akan memberikan indikasi apakah pengeluaran Anda masih dalam batas aman.
+          </p>
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex-1 w-full">
+              <label className="font-label-bold text-label-bold block mb-2 uppercase">Nominal Target (Rp)</label>
+              <input 
+                type="number" 
+                placeholder="Misal: 3000000"
+                value={monthlyTarget}
+                onChange={(e) => setMonthlyTarget(e.target.value)}
+                className="w-full bg-white border-4 border-on-surface p-4 font-body-lg focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+              />
+            </div>
+            <button 
+              onClick={handleUpdateTarget}
+              disabled={targetLoading}
+              className="w-full md:w-auto font-label-bold uppercase py-4 px-8 border-4 border-on-surface bg-primary text-on-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)] md:hover:translate-x-1 md:hover:translate-y-1 active:translate-x-1 active:translate-y-1 transition-all disabled:opacity-50 h-[56px] whitespace-nowrap"
+            >
+              {targetLoading ? "Menyimpan..." : "Simpan Target"}
+            </button>
+          </div>
+        </section>
+
         {/* Section: General */}
         <section className="flex flex-col gap-4 border-4 border-on-surface bg-surface-container-low p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] h-full">
           <div className="flex items-center gap-3 mb-2">
