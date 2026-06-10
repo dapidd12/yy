@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             </button>
             <h1 className="font-headline-lg text-headline-lg uppercase mb-2">MONEYMIND</h1>
             <p className="font-body-md text-on-surface-variant mb-8">
-              Login dengan akun Google untuk menyimpan dan mengelola data keuanganmu sendiri secara privat di Google Sheets.
+              Login dengan akun Google untuk menyimpan dan mengelola data keuanganmu sendiri secara privat.
             </p>
             {error && (
               <div className="bg-error-container text-on-error-container p-3 mb-6 border-2 border-error font-label-bold text-sm">
