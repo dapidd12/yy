@@ -1,0 +1,31 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile containing a unique username.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User's email address"
+        },
+        "username": {
+          "type": "string",
+          "description": "Unique username chosen by the user"
+        },
+        "createdAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["email", "username", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "User profile keyed by their Firebase Auth UID."
+    }
+  }
+}
